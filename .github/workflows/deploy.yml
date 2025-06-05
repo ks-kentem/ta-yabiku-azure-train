@@ -1,0 +1,71 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+# Azure ログイン時の権限
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      # Release 環境を指定
+      name: 'Release'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.x"
+
+      # Nuget
+      - name: Restore NuGet packages for service
+        run: dotnet restore WebApplication2.sln
+
+      # ビルド
+      - name: Build with dotnet
+        run: dotnet build WebApplication2.sln --configuration Release
+
+      - name: dotnet publish
+        run: dotnet WebApplication2.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: .net-app
+          path: ${{env.DOTNET_ROOT}}/myapp
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      # Release 環境を指定
+      name: 'Release'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+
+      # Azure にログイン
+      - name: OIDC Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ vars.AZURE_APPSERVICE_NAME }}
+          slot-name: 'Production'
+          package: .
