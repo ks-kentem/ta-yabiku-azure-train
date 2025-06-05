@@ -25,14 +25,14 @@ jobs:
 
       # Nuget
       - name: Restore NuGet packages for service
-        run: dotnet restore WebApplication2.sln
+        run: dotnet restore WebApplication2/WebApplication2.sln
 
       # ビルド
       - name: Build with dotnet
-        run: dotnet build WebApplication2.sln --configuration Release
+        run: dotnet build WebApplication2/WebApplication2.sln --configuration Release
 
       - name: dotnet publish
-        run: dotnet WebApplication2.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet WebApplication2/WebApplication2.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
