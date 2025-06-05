@@ -58,14 +58,14 @@ jobs:
       - name: OIDC Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ val.AZURE_CLIENT_ID }}
-          tenant-id: ${{ val.AZURE_TENANT_ID }}
-          subscription-id: ${{ val.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
         
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ${{ val.AZURE_APPSERVICE_NAME }}
+          app-name: ${{ vars.AZURE_APPSERVICE_NAME }}
           slot-name: 'Production'
           package: .
